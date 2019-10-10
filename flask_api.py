@@ -63,19 +63,23 @@ def projections_api():
             return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
 
     if request.method == "POST":
+        con = db_connect()  # connct to database
         try:
-            content = request.json
-            return str(content)
-            con = db_connect() #connct to database
+            contents = request.json
+            for content in contents:
+                company = content["companyname"]
+                asof = content["asof"]
+
             if con is not None:
                 cursor = con.cursor()
-                query = "select * from company_projections where companyname='"+company+"'"
+                query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "'"
                 cursor.execute(query)
-                rows = cursor.fetchall()
-                field_names = [i[0] for i in cursor.description]
-                json_string = json.dumps([{description: value for description, value in zip(field_names, row)} for row in rows],sort_keys=True, default=str)
+                con.commit()
+                query = "insert into company_projections(comapanyname,asof) values('" + company + "', asof='" + asof + "') where companyname='"+company+"' and asof='" + asof + "'"
+                cursor.execute(query)
+                con.commit()
                 con.close() #close database connection
-                return  json_string
+                return  contents
             else:
                 return '{"Error":"DB Connection Error"}'
         except:
