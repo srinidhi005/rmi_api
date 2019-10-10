@@ -64,7 +64,8 @@ def projections_api():
 
     if request.method == "POST":
         try:
-            company = request.args['company']
+            content = request.json
+            return str(content)
             con = db_connect() #connct to database
             if con is not None:
                 cursor = con.cursor()
