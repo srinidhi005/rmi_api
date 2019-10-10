@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,request
 from flask_cors import CORS
 import json
 
@@ -24,10 +24,11 @@ def verify_password(username, password):
 @app.route('/actuals')
 @auth.login_required
 def actuals_api():
+    company = request.args['company']
     con = db_connect() #connct to database
     if con is not None:
         cursor = con.cursor()
-        query = "select * from company_actuals"
+        query = "select * from company_actuals where companyname='"+company+"'"
         cursor.execute(query)
         rows = cursor.fetchall()
         field_names = [i[0] for i in cursor.description]
