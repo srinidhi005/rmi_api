@@ -71,6 +71,7 @@ def projections_api():
                 asof = content["asof"]
                 scenario = content["scenario"]
                 totalrevenue = content["totalrevenue"]
+            print(company,asof,scenario,totalrevenue)
 
             if con is not None:
                 cursor = con.cursor()
