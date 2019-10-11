@@ -70,15 +70,47 @@ def projections_api():
                 company = content["companyname"]
                 asof = content["asof"]
                 scenario = content["scenario"]
+                latest = content["latest"]
                 totalrevenue = content["totalrevenue"]
-            print(company,asof,scenario,totalrevenue)
+                cogs = content["cogs"]
+                grossprofit = content["grossprofit"]
+                sga = content["sga"]
+                ebit = content["ebit"]
+                ebitmargin = content["ebitmargin"]
+                da = content["da"]
+                ebitda = content["ebitda"]
+                ebitdamargin = content["ebitdamargin"]
+                ebitdamargin = content["ebitdamargin"]
+                netinterest = content["netinterest"]
+                otherincome = content["otherincome"]
+                ebt = content["ebt"]
+                ebtmargin = content["ebtmargin"]
+                taxes = content["taxes"]
+                netincome = content["netincome"]
+                netincomemargin = content["netincomemargin"]
+                revenuepercent = content["revenuepercent"]
+                cogspercent = content["cogspercent"]
+                sgapercent = content["sgapercent"]
+                dapercent = content["dapercent"]
+                netinterestdollars = content["netinterestdollars"]
+                otherincomepercent = content["otherincomepercent"]
+                taxespercent = content["taxespercent"]
+                grossprofitmargin = content["grossprofitmargin"]
+
 
             if con is not None:
                 cursor = con.cursor()
                 query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "' and scenario='" + str(scenario) + "'"
                 cursor.execute(query)
                 con.commit()
-                query = "insert into company_projections(companyname,asof,scenario,totalrevenue) values('" + company + "','" + asof + "','"+str(scenario)+"',"+str(totalrevenue)+")"
+                query = "insert into company_projections(companyname,asof,scenario,totalrevenue,latest,cogs,grossprofit,grossprofitmargin,sga," \
+                        "ebit,ebitmargin,da,ebitda,ebitdamargin,netinterest,otherincome,ebt,ebtmargin,taxes,netincome,netincomemargin,revenuepercent," \
+                        "cogspercent,sgapercent,dapercent,netinterestdollars,otherincomepercent,taxespercent) values('" + company + "','" + asof + "'," \
+                       "'"+str(scenario)+"',"+str(totalrevenue)+","+str(latest)+","+str(cogs)+","+str(grossprofit)+","+str(grossprofitmargin)+"" \
+                        ","+str(sga)+","+str(ebit)+","+str(ebitmargin)+","+str(da)+","+str(ebitda)+","+str(ebitdamargin)+"" \
+                        ","+str(netinterest)+","+str(otherincome)+","+str(ebt)+","+str(ebtmargin)+","+str(taxes)+","+str(netincome)+"" \
+                        ","+str(netincomemargin)+","+str(revenuepercent)+","+str(cogspercent)+","+str(sgapercent)+","+str(dapercent)+","+str(netinterestdollars)+"" \
+                        ","+str(otherincomepercent)+","+str(taxespercent)+")"
                 cursor.execute(query)
                 con.commit()
                 con.close() #close database connection
