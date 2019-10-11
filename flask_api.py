@@ -80,7 +80,6 @@ def projections_api():
                 da = content["da"]
                 ebitda = content["ebitda"]
                 ebitdamargin = content["ebitdamargin"]
-                ebitdamargin = content["ebitdamargin"]
                 netinterest = content["netinterest"]
                 otherincome = content["otherincome"]
                 ebt = content["ebt"]
