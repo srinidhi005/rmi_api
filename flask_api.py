@@ -69,13 +69,15 @@ def projections_api():
             for content in contents:
                 company = content["companyname"]
                 asof = content["asof"]
+                scenario = content["scenario"]
+                totalrevenue = content["totalrevenue"]
 
             if con is not None:
                 cursor = con.cursor()
-                query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "'"
+                query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "' and scenario='" + scenario + "'"
                 cursor.execute(query)
                 con.commit()
-                query = "insert into company_projections(comapanyname,asof) values('" + company + "', asof='" + asof + "') where companyname='"+company+"' and asof='" + asof + "'"
+                query = "insert into company_projections(comapanyname,asof,scenario,totalrevenue) values('" + company + "', asof='" + asof + "','"+scenario+"',"+totalrevenue+")"
                 cursor.execute(query)
                 con.commit()
                 con.close() #close database connection
