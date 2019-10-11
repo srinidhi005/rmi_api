@@ -84,7 +84,7 @@ def projections_api():
                 return  contents
             else:
                 return '{"Error":"DB Connection Error"}'
-        except:
-            return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
+        except Exception as e:
+            return '{"Error":'+str(e)+'}'
 if __name__ == "__main__":
     app.run(host='0.0.0.0',port=8000,debug=True)
