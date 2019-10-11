@@ -74,7 +74,7 @@ def projections_api():
 
             if con is not None:
                 cursor = con.cursor()
-                query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "' and scenario='" + scenario + "'"
+                query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "' and scenario='" + str(scenario) + "'"
                 cursor.execute(query)
                 con.commit()
                 query = "insert into company_projections(comapanyname,asof,scenario,totalrevenue) values('" + company + "', asof='" + asof + "','"+str(scenario)+"',"+str(totalrevenue)+")"
