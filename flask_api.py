@@ -100,6 +100,7 @@ def projections_api():
             if con is not None:
                 cursor = con.cursor()
                 query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "' and scenario='" + str(scenario) + "'"
+                print(query)
                 cursor.execute(query)
                 con.commit()
                 query = "insert into company_projections(companyname,asof,scenario,totalrevenue,latest,cogs,grossprofit,grossprofitmargin,sga," \
@@ -110,6 +111,7 @@ def projections_api():
                         ","+str(netinterest)+","+str(otherincome)+","+str(ebt)+","+str(ebtmargin)+","+str(taxes)+","+str(netincome)+"" \
                         ","+str(netincomemargin)+","+str(revenuepercent)+","+str(cogspercent)+","+str(sgapercent)+","+str(dapercent)+","+str(netinterestdollars)+"" \
                         ","+str(otherincomepercent)+","+str(taxespercent)+")"
+                print(query)
                 cursor.execute(query)
                 con.commit()
                 con.close() #close database connection
