@@ -82,7 +82,7 @@ def projections_api():
                 cursor.execute(query)
                 con.commit()
                 con.close() #close database connection
-                return  contents
+                return str(request.json)
             else:
                 return '{"Error":"DB Connection Error"}'
         except Exception as e:
