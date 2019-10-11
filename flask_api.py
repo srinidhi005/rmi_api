@@ -78,7 +78,7 @@ def projections_api():
                 query = "delete from company_projections where companyname='" + company + "' and asof='" + asof + "' and scenario='" + str(scenario) + "'"
                 cursor.execute(query)
                 con.commit()
-                query = "insert into company_projections(companyname,asof,scenario,totalrevenue) values('" + company + "', asof='" + asof + "','"+str(scenario)+"',"+str(totalrevenue)+")"
+                query = "insert into company_projections(companyname,asof,scenario,totalrevenue) values('" + company + "','" + asof + "','"+str(scenario)+"',"+str(totalrevenue)+")"
                 cursor.execute(query)
                 con.commit()
                 con.close() #close database connection
