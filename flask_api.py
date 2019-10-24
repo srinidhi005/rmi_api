@@ -121,5 +121,26 @@ def projections_api():
                 return '{"Error":"DB Connection Error"}'
         except Exception as e:
             return '{"Error":'+str(e)+'}'
+
+@app.route('/scenarios' , methods=['GET'])
+@auth.login_required
+def scenarios_api():
+    if request.method == "GET":
+        try:
+            company = request.args['company']
+            con = db_connect() #connct to database
+            if con is not None:
+                cursor = con.cursor()
+                query = "select scenario from company_projections where companyname='"+company+"'"
+                cursor.execute(query)
+                rows = cursor.fetchall()
+                field_names = [i[0] for i in cursor.description]
+                json_string = json.dumps([{description: value for description, value in zip(field_names, row)} for row in rows],sort_keys=True, default=str)
+                con.close() #close database connection
+                return  json_string
+            else:
+                return '{"Error":"DB Connection Error"}'
+        except:
+            return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
 if __name__ == "__main__":
     app.run(host='0.0.0.0',port=8000,debug=True)
