@@ -134,8 +134,9 @@ def scenarios_api():
                 query = "select scenario from company_projections where companyname='"+company+"'"
                 cursor.execute(query)
                 rows = cursor.fetchall()
-                field_names = [i[0] for i in cursor.description]
-                json_string = json.dumps([{description: value for description, value in zip(field_names, row)} for row in rows],sort_keys=True, default=str)
+                scenarios = [i[0] for i in rows]
+                scenerio = {"scenarios":scenarios}
+                json_string = json.dumps(scenerio,sort_keys=True, default=str)
                 con.close() #close database connection
                 return  json_string
             else:
