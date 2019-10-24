@@ -47,10 +47,11 @@ def projections_api():
     if request.method == "GET":
         try:
             company = request.args['company']
+            scenario = request.args['scenario']
             con = db_connect() #connct to database
             if con is not None:
                 cursor = con.cursor()
-                query = "select * from company_projections where companyname='"+company+"'"
+                query = "select * from company_projections where companyname='"+company+"' and scenario='"+str(scenario)+"'"
                 cursor.execute(query)
                 rows = cursor.fetchall()
                 field_names = [i[0] for i in cursor.description]
