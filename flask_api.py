@@ -66,40 +66,42 @@ def projections_api():
     if request.method == "POST":
         con = db_connect()  # connct to database
         try:
-            contents = request.json
-            for content in contents:
-                company = content["companyname"]
-                asof = content["asof"]
-                scenario = content["scenario"]
-                latest = content["latest"]
-                totalrevenue = content["totalrevenue"]
-                cogs = content["cogs"]
-                grossprofit = content["grossprofit"]
-                sga = content["sga"]
-                ebit = content["ebit"]
-                ebitmargin = content["ebitmargin"]
-                da = content["da"]
-                ebitda = content["ebitda"]
-                ebitdamargin = content["ebitdamargin"]
-                netinterest = content["netinterest"]
-                otherincome = content["otherincome"]
-                ebt = content["ebt"]
-                ebtmargin = content["ebtmargin"]
-                taxes = content["taxes"]
-                netincome = content["netincome"]
-                netincomemargin = content["netincomemargin"]
-                revenuepercent = content["revenuepercent"]
-                cogspercent = content["cogspercent"]
-                sgapercent = content["sgapercent"]
-                dapercent = content["dapercent"]
-                netinterestdollars = content["netinterestdollars"]
-                otherincomepercent = content["otherincomepercent"]
-                taxespercent = content["taxespercent"]
-                grossprofitmargin = content["grossprofitmargin"]
+            if con is not None:
+                cursor = con.cursor()
+                contents = request.json
+                for content in contents:
+                    company = content["companyname"]
+                    asof = content["asof"]
+                    scenario = content["scenario"]
+                    latest = content["latest"]
+                    totalrevenue = content["totalrevenue"]
+                    cogs = content["cogs"]
+                    grossprofit = content["grossprofit"]
+                    sga = content["sga"]
+                    ebit = content["ebit"]
+                    ebitmargin = content["ebitmargin"]
+                    da = content["da"]
+                    ebitda = content["ebitda"]
+                    ebitdamargin = content["ebitdamargin"]
+                    netinterest = content["netinterest"]
+                    otherincome = content["otherincome"]
+                    ebt = content["ebt"]
+                    ebtmargin = content["ebtmargin"]
+                    taxes = content["taxes"]
+                    netincome = content["netincome"]
+                    netincomemargin = content["netincomemargin"]
+                    revenuepercent = content["revenuepercent"]
+                    cogspercent = content["cogspercent"]
+                    sgapercent = content["sgapercent"]
+                    dapercent = content["dapercent"]
+                    netinterestdollars = content["netinterestdollars"]
+                    otherincomepercent = content["otherincomepercent"]
+                    taxespercent = content["taxespercent"]
+                    grossprofitmargin = content["grossprofitmargin"]
 
 
-                if con is not None:
-                    cursor = con.cursor()
+
+
                     query = "delete from company_projections where companyname='" + company + "' and asof=" + str(asof) + " and scenario='" + str(scenario) + "'"
                     print(query)
                     cursor.execute(query)
@@ -115,10 +117,12 @@ def projections_api():
                     print(query)
                     cursor.execute(query)
                     con.commit()
-                    con.close() #close database connection
-                    return str(request.json)
-                else:
-                    return '{"Error":"DB Connection Error"}'
+
+                return str(request.json)
+                con.close()  # close database connection
+            else:
+                return '{"Error":"DB Connection Error"}'
+
         except Exception as e:
             return '{"Error":'+str(e)+'}'
 
