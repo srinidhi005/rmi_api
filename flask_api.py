@@ -98,27 +98,27 @@ def projections_api():
                 grossprofitmargin = content["grossprofitmargin"]
 
 
-            if con is not None:
-                cursor = con.cursor()
-                query = "delete from company_projections where companyname='" + company + "' and asof=" + str(asof) + " and scenario='" + str(scenario) + "'"
-                print(query)
-                cursor.execute(query)
-                con.commit()
-                query = "insert into company_projections(companyname,asof,scenario,totalrevenue,latest,cogs,grossprofit,grossprofitmargin,sga," \
-                        "ebit,ebitmargin,da,ebitda,ebitdamargin,netinterest,otherincome,ebt,ebtmargin,taxes,netincome,netincomemargin,revenuepercent," \
-                        "cogspercent,sgapercent,dapercent,netinterestdollars,otherincomepercent,taxespercent) values('" + company + "'," + str(asof) + "," \
-                       "'"+str(scenario)+"',"+str(totalrevenue)+","+str(latest)+","+str(cogs)+","+str(grossprofit)+","+str(grossprofitmargin)+"" \
-                        ","+str(sga)+","+str(ebit)+","+str(ebitmargin)+","+str(da)+","+str(ebitda)+","+str(ebitdamargin)+"" \
-                        ","+str(netinterest)+","+str(otherincome)+","+str(ebt)+","+str(ebtmargin)+","+str(taxes)+","+str(netincome)+"" \
-                        ","+str(netincomemargin)+","+str(revenuepercent)+","+str(cogspercent)+","+str(sgapercent)+","+str(dapercent)+","+str(netinterestdollars)+"" \
-                        ","+str(otherincomepercent)+","+str(taxespercent)+")"
-                print(query)
-                cursor.execute(query)
-                con.commit()
-                con.close() #close database connection
-                return str(request.json)
-            else:
-                return '{"Error":"DB Connection Error"}'
+                if con is not None:
+                    cursor = con.cursor()
+                    query = "delete from company_projections where companyname='" + company + "' and asof=" + str(asof) + " and scenario='" + str(scenario) + "'"
+                    print(query)
+                    cursor.execute(query)
+                    con.commit()
+                    query = "insert into company_projections(companyname,asof,scenario,totalrevenue,latest,cogs,grossprofit,grossprofitmargin,sga," \
+                            "ebit,ebitmargin,da,ebitda,ebitdamargin,netinterest,otherincome,ebt,ebtmargin,taxes,netincome,netincomemargin,revenuepercent," \
+                            "cogspercent,sgapercent,dapercent,netinterestdollars,otherincomepercent,taxespercent) values('" + company + "'," + str(asof) + "," \
+                           "'"+str(scenario)+"',"+str(totalrevenue)+","+str(latest)+","+str(cogs)+","+str(grossprofit)+","+str(grossprofitmargin)+"" \
+                            ","+str(sga)+","+str(ebit)+","+str(ebitmargin)+","+str(da)+","+str(ebitda)+","+str(ebitdamargin)+"" \
+                            ","+str(netinterest)+","+str(otherincome)+","+str(ebt)+","+str(ebtmargin)+","+str(taxes)+","+str(netincome)+"" \
+                            ","+str(netincomemargin)+","+str(revenuepercent)+","+str(cogspercent)+","+str(sgapercent)+","+str(dapercent)+","+str(netinterestdollars)+"" \
+                            ","+str(otherincomepercent)+","+str(taxespercent)+")"
+                    print(query)
+                    cursor.execute(query)
+                    con.commit()
+                    con.close() #close database connection
+                    return str(request.json)
+                else:
+                    return '{"Error":"DB Connection Error"}'
         except Exception as e:
             return '{"Error":'+str(e)+'}'
 
