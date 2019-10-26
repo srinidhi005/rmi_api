@@ -139,7 +139,7 @@ def scenarios_api():
                 cursor.execute(query)
                 rows = cursor.fetchall()
                 scenarios = [i[0] for i in rows]
-                scenarios = scenarios.sort()
+                scenarios = sorted(scenarios)
                 scenerio = {"scenarios":scenarios}
                 json_string = json.dumps(scenerio,sort_keys=True, default=str)
                 con.close() #close database connection
