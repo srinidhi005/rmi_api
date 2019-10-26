@@ -135,10 +135,11 @@ def scenarios_api():
             con = db_connect() #connct to database
             if con is not None:
                 cursor = con.cursor()
-                query = "select scenario from company_projections where companyname='"+company+"'"
+                query = "select distinct scenario from company_projections where companyname='"+company+"'"
                 cursor.execute(query)
                 rows = cursor.fetchall()
                 scenarios = [i[0] for i in rows]
+                scenarios = scenarios.sort()
                 scenerio = {"scenarios":scenarios}
                 json_string = json.dumps(scenerio,sort_keys=True, default=str)
                 con.close() #close database connection
