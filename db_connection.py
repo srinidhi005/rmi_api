@@ -34,3 +34,4 @@ def local_db_connect():
 
 if __name__ == '__main__':
     db_connect()
+    local_db_connect()

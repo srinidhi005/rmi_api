@@ -150,7 +150,7 @@ def scenarios_api():
             return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
 
 @app.route('/statements' , methods=['GET'])
-@auth.login_required
+# @auth.login_required
 def statements_api():
     if request.method == "GET":
         try:
