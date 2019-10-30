@@ -11,14 +11,26 @@ def db_connect():
         if connection.is_connected():
             db_Info = connection.get_server_info()
             print("Connected to MySQL Server version ", db_Info)
-            cursor = connection.cursor()
-            cursor.execute("show tables")
-            record = cursor.fetchall()
-            print("Your connected to database: ", record)
             return connection
     except Error as e:
-        print("Error reading data from MySQL table", e)
+        print("Error connecting MySQL DB", e)
         return connection
+
+def local_db_connect():
+    connection = None
+    try:
+        connection = mysql.connector.connect(host='127.0.0.1',
+                                             database='rmi',
+                                             user='root',
+                                             password='root')
+        if connection.is_connected():
+            db_Info = connection.get_server_info()
+            print("Connected to MySQL Server version ", db_Info)
+            return connection
+    except Error as e:
+        print("Error connecting Local MySQL DB", e)
+        return connection
+
 
 if __name__ == '__main__':
     db_connect()

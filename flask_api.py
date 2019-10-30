@@ -6,7 +6,7 @@ from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-from db_connection import db_connect
+from db_connection import db_connect,local_db_connect
 app = Flask(__name__)
 CORS(app)
 auth = HTTPBasicAuth()
@@ -143,6 +143,28 @@ def scenarios_api():
                 scenerio = {"scenarios":scenarios}
                 json_string = json.dumps(scenerio,sort_keys=True, default=str)
                 con.close() #close database connection
+                return  json_string
+            else:
+                return '{"Error":"DB Connection Error"}'
+        except:
+            return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
+
+@app.route('/statements' , methods=['GET'])
+@auth.login_required
+def statements_api():
+    if request.method == "GET":
+        try:
+            con = local_db_connect() #connct to database
+            if con is not None:
+                cursor = con.cursor()
+                query = "select * from statement where order by id desc"
+                cursor.execute(query)
+                rows = cursor.fetchall()
+                field_names = [i[0] for i in cursor.description]
+                json_string = json.dumps(
+                    [{description: value for description, value in zip(field_names, row)} for row in rows],
+                    sort_keys=False, default=str)
+                con.close()  # close database connection
                 return  json_string
             else:
                 return '{"Error":"DB Connection Error"}'
