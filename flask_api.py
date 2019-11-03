@@ -157,7 +157,7 @@ def statements_api():
             con = local_db_connect() #connct to database
             if con is not None:
                 cursor = con.cursor()
-                query = "select * from statement order by id desc"
+                query = "select t1.*,t2.username from statement t1,users t2 where t1.user_id=t2.id order by t1.id desc"
                 cursor.execute(query)
                 rows = cursor.fetchall()
                 field_names = [i[0] for i in cursor.description]
