@@ -1,6 +1,11 @@
 from flask import Flask,request
 from flask_cors import CORS
 import json
+from werkzeug.utils import secure_filename
+import os
+import datetime
+
+UPLOAD_FOLDER = '/home/rmi_api/uploads'
 
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,6 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from db_connection import db_connect,local_db_connect
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 CORS(app)
 auth = HTTPBasicAuth()
 users = {
@@ -20,6 +26,14 @@ def verify_password(username, password):
     if username in users:
         return check_password_hash(users.get(username), password)
     return False
+
+json_return = {
+    "code":0,
+    "message":"None",
+    "description":"",
+    "result":""
+}
+
 
 @app.route('/actuals')
 @auth.login_required
@@ -35,10 +49,25 @@ def actuals_api():
             field_names = [i[0] for i in cursor.description]
             json_string = json.dumps([{description: value for description, value in zip(field_names, row)} for row in rows],sort_keys=True, default=str)
             con.close() #close database connection
+            json_return["code"] = 200
+            json_return["message"] = "Success"
+            json_return["description"] = "company_actuals list"
+            json_return["result"] = json_string
+            # return json.dumps(json_return)
             return  json_string
         else:
-            return '{"Error":"DB Connection Error"}'
-    except:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = "DB Connection Error"
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return '{"Error":"DB Error"}'
+    except Exception as e:
+        json_return["code"] = 500
+        json_return["message"] = "Fail"
+        json_return["description"] = str(e)
+        json_return["result"] = []
+        # return json.dumps(json_return)
         return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
 
 @app.route('/projections' , methods=['GET','POST'])
@@ -57,11 +86,26 @@ def projections_api():
                 field_names = [i[0] for i in cursor.description]
                 json_string = json.dumps([{description: value for description, value in zip(field_names, row)} for row in rows],sort_keys=True, default=str)
                 con.close() #close database connection
-                return  json_string
+                json_return["code"] = 200
+                json_return["message"] = "Success"
+                json_return["description"] = "company_projections list"
+                json_return["result"] = json_string
+                # return json.dumps(json_return)
+                return json_string
             else:
-                return '{"Error":"DB Connection Error"}'
-        except:
-            return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                # return json.dumps(json_return)
+                return '{"Error":"DB Error"}'
+        except Exception as e:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error":str(e)}
 
     if request.method == "POST":
         con = db_connect()  # connct to database
@@ -117,14 +161,28 @@ def projections_api():
                     print(query)
                     cursor.execute(query)
                     con.commit()
+                json_return["code"] = 200
+                json_return["message"] = "Success"
+                json_return["description"] = "Updated Scenerios"
+                json_return["result"] = str(request.json)
+                # return json.dumps(json_return)
 
                 return str(request.json)
                 con.close()  # close database connection
             else:
-                return '{"Error":"DB Connection Error"}'
-
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                # return json.dumps(json_return)
+                return '{"error":"DB Connection Error"}'
         except Exception as e:
-            return '{"Error":'+str(e)+'}'
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error": str(e)}
 
 @app.route('/scenarios' , methods=['GET'])
 @auth.login_required
@@ -143,21 +201,73 @@ def scenarios_api():
                 scenerio = {"scenarios":scenarios}
                 json_string = json.dumps(scenerio,sort_keys=True, default=str)
                 con.close() #close database connection
-                return  json_string
+                json_return["code"] = 200
+                json_return["message"] = "Success"
+                json_return["description"] = "Scenerios list"
+                json_return["result"] = json_string
+                return json_string
+                # return json.dumps(json_return)
             else:
-                return '{"Error":"DB Connection Error"}'
-        except:
-            return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                # return json.dumps(json_return)
+            return '{"error":"DB Connection Error"}'
+        except Exception as e:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error": str(e)}
 
+@app.route('/companies' , methods=['GET'])
+@auth.login_required
+def companies_api():
+    if request.method == "GET":
+        try:
+            con = db_connect() #connct to database
+            if con is not None:
+                cursor = con.cursor()
+                query = "select distinct companyname from company_actuals"
+                cursor.execute(query)
+                rows = cursor.fetchall()
+                companies = [i[0] for i in rows]
+                companies.sort()
+                companies = {"companies":companies}
+                json_string = json.dumps(companies,sort_keys=True, default=str)
+                con.close() #close database connection
+                json_return["code"] = 200
+                json_return["message"] = "Success"
+                json_return["description"] = "companies list"
+                json_return["result"] = json_string
+                return json_string
+                # return json.dumps(json_return)
+            else:
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                # return json.dumps(json_return)
+                return '{"error":"DB Connection Error"}'
+        except Exception as e:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error": str(e)}
 @app.route('/statements' , methods=['GET'])
 @auth.login_required
 def statements_api():
     if request.method == "GET":
         try:
-            con = local_db_connect() #connct to database
+            con = db_connect() #connct to database
             if con is not None:
                 cursor = con.cursor()
-                query = "select t1.*,t2.username from statement t1,users t2 where t1.user_id=t2.id order by t1.id desc"
+                #query = "select t1.*,t2.username from statement t1,users t2 where t1.user_id=t2.id order by t1.id desc"
+                query = "select * from company_master order by uid desc"
                 cursor.execute(query)
                 rows = cursor.fetchall()
                 field_names = [i[0] for i in cursor.description]
@@ -165,10 +275,148 @@ def statements_api():
                     [{description: value for description, value in zip(field_names, row)} for row in rows],
                     sort_keys=False, default=str)
                 con.close()  # close database connection
-                return  json_string
+                json_return["code"] = 200
+                json_return["message"] = "Success"
+                json_return["description"] = "statements list"
+                json_return["result"] = json_string
+                # return json.dumps(json_return)
+                return json_string
             else:
-                return '{"Error":"DB Connection Error"}'
-        except:
-            return '{"Error":"Something went wrong,Make sure that ur passing company name in query params"}'
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                # return json.dumps(json_return)
+                return '{"error":"DB Connection Error"}'
+        except Exception as e:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error": str(e)}
+
+@app.route('/userprofile' , methods=['GET'])
+@auth.login_required
+def user_profile_api():
+    if request.method == "GET":
+        try:
+            email = request.args['email']
+            con = db_connect() #connct to database
+            if con is not None:
+                cursor = con.cursor()
+                query = "select * from user_profile where email='"+email+"'"
+                cursor.execute(query)
+                rows = cursor.fetchall()
+                field_names = [i[0] for i in cursor.description]
+                json_string = json.dumps(
+                    [{description: value for description, value in zip(field_names, row)} for row in rows],
+                    sort_keys=False, default=str)
+                con.close()  # close database connection
+                json_return["code"] = 200
+                json_return["message"] = "Success"
+                json_return["description"] = "User Profile"
+                json_return["result"] = json_string
+                # return json.dumps(json_return)
+                return json_string
+            else:
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                # return json.dumps(json_return)
+                return '{"error":"DB Connection Error"}'
+        except Exception as e:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error": str(e)}
+
+@app.route('/updateprofile' , methods=['POST'])
+@auth.login_required
+def update_profile_api():
+    if request.method == "POST":
+        try:
+            userName = request.form.get("userName")
+            firstName = request.form.get("firstName")
+            lastName = request.form.get("lastName")
+            email = request.form.get("email")
+            password = request.form.get("password")
+            contactNumber = request.form.get("contactNumber")
+            companyName = request.form.get("companyName")
+            companyTitle = request.form.get("companyTitle")
+            companyAddress = request.form.get("companyAddress")
+            companyCity = request.form.get("companyCity")
+            companyState = request.form.get("companyState")
+            companyZipCode = request.form.get("companyZipCode")
+            companyCountry = request.form.get("companyCountry")
+            industry = request.form.get("industry")
+            geography = request.form.get("geography")
+            companySize = request.form.get("companySize")
+            capatialization = request.form.get("capatialization")
+            revenue = request.form.get("revenue")
+            profileImage = request.files['profileImage']
+            companyLogo = request.files['companyLogo']
+            if profileImage and companyLogo:
+                profile_filename = secure_filename(profileImage.filename)
+                logo_filename = secure_filename(companyLogo.filename)
+                profile_image_path = os.path.join(app.config['UPLOAD_FOLDER'], profile_filename)
+                logo_image_path = os.path.join(app.config['UPLOAD_FOLDER'], logo_filename)
+                profileImage.save(profile_image_path)
+                companyLogo.save(logo_image_path)
+                date_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                # json_return["code"] = 200
+                # json_return["message"] = "Success"
+                # json_return["description"] = "File Uploaded Successfully"
+                # json_return["result"] = "OK"
+                # return json_string
+                con = db_connect()  # connct to database
+
+                if con is not None:
+                    cursor = con.cursor()
+
+                    try:
+
+                        query = "select * from user_profile where email='"+email+"'"
+                        cursor.execute(query)
+                        if(len(cursor.fetchall()) > 0): # check if record exist
+                            query = "delete from user_profile where email='"+email+"'"
+                            cursor.execute(query) # delete existing
+                            con.commit() # save
+
+                        query = "insert into user_profile(username,email,firstname,lastname,password,contact," \
+                                "companyname,title,address,city,state,country,zipcode,industry,geography,companysize," \
+                                "capitalisation,revenue,userimage,companyimage,createdon) values('"+userName+"','"+email+"','"+firstName+"'," \
+                               "'"+lastName+"','"+password+"','"+contactNumber+"','"+companyName+"','"+companyTitle+"','"+companyAddress+"'," \
+                                "'"+companyCity+"','"+companyState+"','"+companyCountry+"','"+companyZipCode+"','"+industry+"'," \
+                                "'"+geography+"','"+companySize+"','"+capatialization+"','"+revenue+"','"+profile_image_path+"'," \
+                               "'"+logo_image_path+"','"+date_time+"')"
+
+                        cursor.execute(query)
+                        con.commit()
+                        return {"Success":"Registration Completed Successfully"}
+                    except Exception as e:
+                        return {"Error":str(e)}
+
+
+            else:
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                # return json.dumps(json_return)
+                return '{"error":"DB Connection Error"}'
+        except Exception as e:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error": str(e)}
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0',port=8000,debug=True)
+
+
