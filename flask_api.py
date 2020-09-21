@@ -1,17 +1,20 @@
-from flask import Flask,request
+from flask import Flask,request,send_from_directory,send_file
 from flask_cors import CORS
 import json
 from werkzeug.utils import secure_filename
 import os
 import datetime
-
+from google.cloud import storage
 UPLOAD_FOLDER = '/home/rmi_api/uploads'
+UPLOAD_FOLDER1 = '/home/srinidhi/angular/ExtractedFiles'
 
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from google.cloud import storage
 
 from db_connection import db_connect,local_db_connect
+
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 CORS(app)
@@ -334,6 +337,85 @@ def user_profile_api():
             # return json.dumps(json_return)
             return {"Error": str(e)}
 
+@app.route('/deletestatement' , methods=['GET'])
+@auth.login_required
+def delete_api():
+    if request.method == "GET":
+        try:
+            companyname=request.args['companyname']
+            con = db_connect() #connct to database
+            if con is not None:
+                cursor = con.cursor()
+                query = "delete from company_master where companyname='"+companyname+"'"
+                cursor.execute(query)
+
+                query = "delete from company_projections where companyname='" + companyname + "'"
+                cursor.execute(query) # delete records from company projections
+
+                query = "delete  from company_actuals where companyname='"+companyname+"'"
+                cursor.execute(query) # delete records from company actuals
+                
+                con.commit() # save deletion
+
+                # delete uploaded files if any
+
+                path = "/home/srinidhi/angular/ExtractedFiles"
+
+                try:
+                    os.remove(path+"/"+companyname+".pdf")
+                except Exception as e:
+                    print("Exception in deleting file",e)
+                try:
+                    os.remove(path+"/"+companyname+".txt")
+                except Exception as e:
+                    print("Exception in deleting file",e)
+                try:
+                    os.remove(path+"/"+companyname+".json")
+                except Exception as e:
+                    print("Exception in deleting file",e)
+
+
+                
+                try:
+                    client = storage.Client()
+                    storage_client = storage.Client("rmi-insights")
+                    bucket_name="sample_pdf"
+                    bucket_obj = storage_client.get_bucket(bucket_name)
+                    blobs = bucket_obj.list_blobs(prefix=companyname)
+                    for blob in blobs:
+                        folder,filename = blob.name.split("/")
+                        if folder == companyname:
+                            print("matched blob",blob,"Getting Deleted")
+                            blob.delete() # deletes the comapny folder from google cloud bucket called sample pdf
+                            break
+                except Exception as e:
+                    print("Error in deleting blob",e)
+                
+
+
+
+
+                con.close()  # close database connection
+                json_return["code"] = 200
+                json_return["message"] = "Success"
+                json_return["description"] = "deleted successfully"
+                return json.dumps(json_return)
+                #return json_string
+            else:
+                json_return["code"] = 500
+                json_return["message"] = "Fail"
+                json_return["description"] = "DB Connection Error"
+                json_return["result"] = []
+                return json.dumps(json_return)
+                #return '{"error":"DB Connection Error"}'
+        except Exception as e:
+            json_return["code"] = 500
+            json_return["message"] = "Fail"
+            json_return["description"] = str(e)
+            json_return["result"] = []
+            # return json.dumps(json_return)
+            return {"Error": str(e)}
+
 @app.route('/updateprofile' , methods=['POST'])
 @auth.login_required
 def update_profile_api():
@@ -415,8 +497,64 @@ def update_profile_api():
             json_return["result"] = []
             # return json.dumps(json_return)
             return {"Error": str(e)}
+        
+    
+
+@app.route('/download_file' , methods=['GET'])
+def download_file():
+    companyname = request.args['companyname']
+    bucket_name="sample_pdf"
+    
+
+    
+    destination="/home/srinidhi/angular/ExtractedFiles/"+companyname+".pdf"
+    return send_file(destination,as_attachment=True,attachment_filename=companyname+".pdf")
+
+
+@app.route('/upload_file' , methods=['POST'])
+@auth.login_required
+def upload_file():
+    try:
+        message = "File Uploaded Successfully"
+        file = request.files['file']
+        statementtype = request.form.get("statementtype")
+        companyname = request.form.get("companyname")
+        user = request.form.get("createdby")
+        period = request.form.get("period")
+        industry = request.form.get("industry")
+        filename = secure_filename(file.filename)
+        if os.path.exists(os.path.join(UPLOAD_FOLDER1, companyname+".pdf")):
+            message = "Company Name Exist Already, Try Other"
+            return {"Result":message}
+
+        file.save(os.path.join(UPLOAD_FOLDER1, companyname+".pdf"))
+
+        from extractor.automl_extractor_retail import main_function,upload_blob
+
+        file_path = '/home/srinidhi/angular/ExtractedFiles/'+companyname+".pdf"
+        destination_path = companyname+'/'+companyname+".pdf"
+        
+        model_name = 'projects/410058770032/locations/us-central1/models/TEN4430858137100091392'
+        user = 'admin'
+
+        filename = companyname+".pdf"
+
+
+        upload_blob('sample_pdf', file_path, destination_path)
+        file_path = 'gs://sample_pdf/'+companyname+'/'+companyname+'.pdf'
+
+        message = main_function(file_path,model_name,companyname,period,user,industry,statementtype,filename)
+    except Exception as e:
+        message = str(e)
+
+    if message == "Success":
+        message = "File Uploaded Successfully"
+    
+    return {"Result":message}
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0',port=8000,debug=True)
+
+
 
 

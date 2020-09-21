@@ -1,0 +1,8 @@
+  File "flask_api.py", line 343
+    companyname=request.get("companyname")
+                                         ^
+TabError: inconsistent use of tabs and spaces in indentation
+Traceback (most recent call last):
+  File "flask_api.py", line 1, in <module>
+    from flask import Flask,request
+ImportError: No module named flask
